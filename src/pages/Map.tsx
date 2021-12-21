@@ -1,41 +1,45 @@
-import ReactDOMServer  from 'react-dom/server';
 import { useEffect, useState } from "react";
-import { Box } from "@chakra-ui/react";
-import Leaflet from 'leaflet';
+import { Box, IconButton, useDisclosure } from "@chakra-ui/react";
+import { LatLng, Map as MapType } from 'leaflet';
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
+
 import { Marker as MarkerType, useMarker } from "../contexts/marker";
 
 // Icons
-import { FaMapMarkerAlt } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 
 // Styles
 import "leaflet/dist/leaflet.css";  // Map Style
-import { themeObject } from "../styles/theme";
+import { mapIcons } from "../styles/mapIcons";
 
 // Components
 import { MarkerModal } from "../components/MarkerModal";
-
-const icon = Leaflet.divIcon({
-  html: ReactDOMServer.renderToString(<FaMapMarkerAlt size={32} color={themeObject.colors.custom[500]} />),
-  className: "",
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
-});
+import { CreateMarkerSlide } from "../components/CreateMarkerSlide";
 
 export const Map = () => {
   const initialPosition = { lat: -24.1819477, lng: -46.7920167 };
 
-  const { markers } = useMarker();
-
-  const [selectedMarker, setSelectedMarker] = useState<MarkerType>({} as MarkerType);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const { markers, selectedMarker, setSelectedMarker, newMarker, setNewMarker, selectedPosition, setSelectedPosition } = useMarker();
+
+  const {
+    isOpen: createMarkerSlideIsOpen,
+    onToggle: createMarkerSlideOnToggle
+  } = useDisclosure();
 
   useEffect(() => {
     if (!modalIsOpen) {
       setSelectedMarker({} as MarkerType);
     }
   }, [modalIsOpen]);
+
+  function whenCreated(map: MapType) {
+    map.on('click', (event: { latlng: LatLng}) => {
+      const { lat, lng } = event.latlng;
+      setSelectedPosition([lat, lng]);
+      createMarkerSlideOnToggle();
+    })
+  }
 
   return (
     <Box w="full">
@@ -46,10 +50,26 @@ export const Map = () => {
           setIsOpen={setModalIsOpen}
         />
       )}
+      <IconButton
+        zIndex="1001"
+        position="absolute"
+        top="2"
+        right="2"
+        bg="blue.400"
+        aria-label="Pressione para marcar uma região"
+        size="md"
+        fontSize="lg"
+        variant="solid"
+        icon={<FaPlus color="white" />}
+        onClick={createMarkerSlideOnToggle}
+      />
+      <CreateMarkerSlide isOpen={createMarkerSlideIsOpen} onToggle={createMarkerSlideOnToggle} />
       <MapContainer
         center={initialPosition}
         zoom={13}
+        zoomControl={false}
         style={{ height: "100vh" }}
+        whenCreated={whenCreated}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -57,11 +77,24 @@ export const Map = () => {
         />
         {markers.map(marker => (
           <Marker
-            icon={icon}
+            key={`${marker.position[0]}-${marker.position[1]}`}
+            icon={mapIcons[marker.type]}
             position={marker.position}
             eventHandlers={{ click: () => { setSelectedMarker(marker); setModalIsOpen(true); }}}
           />
         ))}
+        {(selectedPosition !== null && newMarker !== null) && (
+          <Marker
+            key={`${newMarker!.position[0]}-${newMarker!.position[1]}`}
+            icon={mapIcons[newMarker.type]}
+            position={selectedPosition}
+            eventHandlers={{ click: () => {
+              setNewMarker(null);
+              setSelectedPosition(null);
+              createMarkerSlideOnToggle();
+            }}}
+          />
+        )}
       </MapContainer>
     </Box>
   )
