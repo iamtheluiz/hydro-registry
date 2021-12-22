@@ -23,6 +23,7 @@ interface MarkerContextProps {
   markers: Marker[];
   setMarkers: (markers: Marker[]) => void;
   addNewMarker: (marker: Marker) => void;
+  deleteMarker: (marker: Marker) => void;
 }
 
 const MarkerContext = createContext<MarkerContextProps | null>(null);
@@ -80,6 +81,12 @@ export const MarkerProvider: React.FC = ({ children }) => {
     ]);
   }
 
+  function deleteMarker(marker: Marker) {
+    const newMarkerList = markers.filter((value) => value !== marker);
+
+    setMarkers(newMarkerList);
+  }
+
   return (
     <MarkerContext.Provider value={{
       selectedMarker,
@@ -90,7 +97,8 @@ export const MarkerProvider: React.FC = ({ children }) => {
       setSelectedPosition,
       markers,
       setMarkers,
-      addNewMarker
+      addNewMarker,
+      deleteMarker
     }}>
       {children}
     </MarkerContext.Provider>
