@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, IconButton, useDisclosure } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 import { LatLng, Map as MapType } from 'leaflet';
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 
@@ -7,6 +8,7 @@ import { Marker as MarkerType, useMarker } from "../contexts/marker";
 
 // Icons
 import { FaPlus } from "react-icons/fa";
+import { BsFillGridFill } from "react-icons/bs";
 
 // Styles
 import "leaflet/dist/leaflet.css";  // Map Style
@@ -21,10 +23,11 @@ export const Map = () => {
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const { markers, selectedMarker, setSelectedMarker, newMarker, setNewMarker, selectedPosition, setSelectedPosition } = useMarker();
+  const navigate = useNavigate();
 
   const {
     isOpen: createMarkerSlideIsOpen,
-    onToggle: createMarkerSlideOnToggle
+    onToggle: toggleCreateMarkerSlide
   } = useDisclosure();
 
   useEffect(() => {
@@ -37,8 +40,20 @@ export const Map = () => {
     map.on('click', (event: { latlng: LatLng}) => {
       const { lat, lng } = event.latlng;
       setSelectedPosition([lat, lng]);
-      createMarkerSlideOnToggle();
+      toggleCreateMarkerSlide();
     })
+  }
+
+  function handleOpenCreateMarkerSlide() {
+    if (newMarker !== null) {
+      toggleCreateMarkerSlide();
+    } else {
+      alert('Selecione um ponto no mapa para adicionar uma nova marcação!')
+    }
+  }
+  
+  function handleNavigateToList() {
+    navigate('/list');
   }
 
   return (
@@ -56,14 +71,29 @@ export const Map = () => {
         top="2"
         right="2"
         bg="blue.400"
+        colorScheme="blue"
         aria-label="Pressione para marcar uma região"
         size="md"
         fontSize="lg"
         variant="solid"
         icon={<FaPlus color="white" />}
-        onClick={createMarkerSlideOnToggle}
+        onClick={handleOpenCreateMarkerSlide}
       />
-      <CreateMarkerSlide isOpen={createMarkerSlideIsOpen} onToggle={createMarkerSlideOnToggle} />
+      <IconButton
+        zIndex="999"
+        position="absolute"
+        top="14"
+        right="2"
+        bg="blue.400"
+        colorScheme="blue"
+        aria-label="Pressione para marcar uma região"
+        size="md"
+        fontSize="lg"
+        variant="solid"
+        icon={<BsFillGridFill color="white" />}
+        onClick={handleNavigateToList}
+      />
+      <CreateMarkerSlide isOpen={createMarkerSlideIsOpen} onToggle={toggleCreateMarkerSlide} />
       <MapContainer
         center={initialPosition}
         zoom={13}
@@ -91,7 +121,7 @@ export const Map = () => {
             eventHandlers={{ click: () => {
               setNewMarker(null);
               setSelectedPosition(null);
-              createMarkerSlideOnToggle();
+              toggleCreateMarkerSlide();
             }}}
           />
         )}
