@@ -22,7 +22,7 @@ export const Map = () => {
   const initialPosition = { lat: -24.1819477, lng: -46.7920167 };
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const { markers, selectedMarker, setSelectedMarker, newMarker, setNewMarker, selectedPosition, setSelectedPosition } = useMarker();
+  const { markers, selectedMarker, setSelectedMarker, selectedPosition, setSelectedPosition } = useMarker();
   const navigate = useNavigate();
 
   const {
@@ -39,17 +39,16 @@ export const Map = () => {
   function whenCreated(map: MapType) {
     map.on('click', (event: { latlng: LatLng}) => {
       const { lat, lng } = event.latlng;
-      setSelectedPosition([lat, lng]);
+      setSelectedPosition({
+        position: [lat, lng],
+        type: "blue"
+      });
       toggleCreateMarkerSlide();
     })
   }
 
   function handleOpenCreateMarkerSlide() {
-    if (newMarker !== null) {
-      toggleCreateMarkerSlide();
-    } else {
-      alert('Selecione um ponto no mapa para adicionar uma nova marcação!')
-    }
+    toggleCreateMarkerSlide();
   }
   
   function handleNavigateToList() {
@@ -65,6 +64,10 @@ export const Map = () => {
           setIsOpen={setModalIsOpen}
         />
       )}
+      <CreateMarkerSlide
+        isOpen={createMarkerSlideIsOpen}
+        onToggle={toggleCreateMarkerSlide}
+      />
       <IconButton
         zIndex="1001"
         position="absolute"
@@ -93,7 +96,6 @@ export const Map = () => {
         icon={<BsFillGridFill color="white" />}
         onClick={handleNavigateToList}
       />
-      <CreateMarkerSlide isOpen={createMarkerSlideIsOpen} onToggle={toggleCreateMarkerSlide} />
       <MapContainer
         center={initialPosition}
         zoom={13}
@@ -113,14 +115,16 @@ export const Map = () => {
             eventHandlers={{ click: () => { setSelectedMarker(marker); setModalIsOpen(true); }}}
           />
         ))}
-        {(selectedPosition !== null && newMarker !== null) && (
+        {(selectedPosition.position !== undefined && selectedPosition.position !== null) && (
           <Marker
-            key={`${newMarker!.position[0]}-${newMarker!.position[1]}`}
-            icon={mapIcons[newMarker.type]}
-            position={selectedPosition}
+            key={`${selectedPosition!.position[0]}-${selectedPosition!.position[1]}`}
+            icon={mapIcons[selectedPosition.type]}
+            position={selectedPosition.position}
             eventHandlers={{ click: () => {
-              setNewMarker(null);
-              setSelectedPosition(null);
+              setSelectedPosition({
+                position: null,
+                type: "blue"
+              });
               toggleCreateMarkerSlide();
             }}}
           />

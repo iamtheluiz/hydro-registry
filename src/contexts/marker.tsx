@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 export type MarkerTypeEnum = 'registro' | 'hidrante de coluna' | 'blue' | string;
 
@@ -13,13 +13,16 @@ export type Marker = {
   extra?: string;
 }
 
+type SelectedPosition = {
+  position: [number, number] | null;
+  type: MarkerTypeEnum;
+}
+
 interface MarkerContextProps {
   selectedMarker: Marker;
   setSelectedMarker: (marker: Marker) => void;
-  newMarker: Marker | null;
-  setNewMarker: (marker: Marker | null) => void;
-  selectedPosition: [number, number] | null;
-  setSelectedPosition: (position: [number, number] | null) => void;
+  selectedPosition: SelectedPosition;
+  setSelectedPosition: (selectedPosition: SelectedPosition) => void;
   markers: Marker[];
   setMarkers: (markers: Marker[]) => void;
   addNewMarker: (marker: Marker) => void;
@@ -30,8 +33,10 @@ const MarkerContext = createContext<MarkerContextProps | null>(null);
 
 export const MarkerProvider: React.FC = ({ children }) => {
   const [selectedMarker, setSelectedMarker] = useState<Marker>({} as Marker);
-  const [newMarker, setNewMarker] = useState<Marker | null>(null);
-  const [selectedPosition, setSelectedPosition] = useState<[number, number] | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<SelectedPosition>({
+    position: null,
+    type: "blue"
+  } as SelectedPosition);
   const [markers, setMarkers] = useState<Marker[]>([
     {
       name: 'Hidrante de Coluna - Rua Samambaia',
@@ -53,27 +58,6 @@ export const MarkerProvider: React.FC = ({ children }) => {
     }
   ]);
 
-  useEffect(() => {
-    if (selectedPosition) {
-      if (newMarker === null) {
-        setNewMarker({
-          name: '',
-          cover: '',
-          coverUpdatedAt: new Date(),
-          description: '',
-          location: '',
-          position: selectedPosition,
-          type: 'blue'
-        });
-      } else {
-        setNewMarker({
-          ...newMarker,
-          position: selectedPosition,
-        })
-      }
-    }
-  }, [selectedPosition])
-
   function addNewMarker(marker: Marker) {
     setMarkers([
       ...markers,
@@ -91,8 +75,6 @@ export const MarkerProvider: React.FC = ({ children }) => {
     <MarkerContext.Provider value={{
       selectedMarker,
       setSelectedMarker,
-      newMarker,
-      setNewMarker,
       selectedPosition,
       setSelectedPosition,
       markers,

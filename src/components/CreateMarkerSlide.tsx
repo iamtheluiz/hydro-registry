@@ -1,9 +1,9 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { Box, Button, HStack, IconButton, Input, Select, Slide, Text, Textarea } from "@chakra-ui/react";
 
 // Icons
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { useMarker } from "../contexts/marker";
+import { Marker, useMarker } from "../contexts/marker";
 
 interface CreateMarkerSlideProps {
   isOpen: boolean;
@@ -11,30 +11,56 @@ interface CreateMarkerSlideProps {
 }
 
 export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, onToggle }) => {
-  const { newMarker, setNewMarker, addNewMarker, setSelectedPosition } = useMarker();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [cover, setCover] = useState("");
+  const [location, setLocation] = useState("");
 
-  function handleSelectChange(event: ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.currentTarget;
+  const { selectedPosition, addNewMarker, setSelectedPosition } = useMarker();
 
-    if (newMarker) {
-      setNewMarker({
-        ...newMarker,
-        type: value
+  function handleGetCurrentLocation() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const { latitude, longitude } = position.coords;
+
+        setSelectedPosition({
+          position: [latitude, longitude],
+          type: "blue"
+        });
       });
     }
   }
 
-  function handleAddMarker() {
-    if (newMarker) {
-      addNewMarker(newMarker);
-      setSelectedPosition(null);
-      setNewMarker(null);
-      onToggle();
-    }
+  function handleSelectChange(event: ChangeEvent<HTMLSelectElement>) {
+    const { value: type } = event.currentTarget;
+
+    setSelectedPosition({
+      ...selectedPosition,
+      type
+    });
   }
 
-  if (newMarker === null) {
-    return <></>;
+  function handleAddMarker() {
+    const { position, type } = selectedPosition;
+
+    if (position === null) {
+      return;
+    }
+
+    addNewMarker({
+      name,
+      description,
+      cover,
+      location,
+      coverUpdatedAt: new Date(),
+      position,
+      type
+    });
+    setSelectedPosition({
+      position: null,
+      type: "blue"
+    });
+    onToggle();
   }
 
   return (
@@ -56,34 +82,34 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
         <Input
           placeholder='Nome'
           color='black'
-          value={newMarker.name}
-          onChange={(event) => setNewMarker({ ...newMarker, name: event.currentTarget.value})}
+          value={name}
+          onChange={(event) => setName(event.currentTarget.value)}
         />
         <Input
           placeholder='Imagem'
           color='black'
           mt='2'
-          value={newMarker.cover}
-          onChange={(event) => setNewMarker({ ...newMarker, cover: event.currentTarget.value})}
+          value={cover}
+          onChange={(event) => setCover(event.currentTarget.value)}
         />
         <Textarea
           placeholder='Descrição'
           color='black'
           mt='2'
-          value={newMarker.description}
-          onChange={(event) => setNewMarker({ ...newMarker, description: event.currentTarget.value})}
+          value={description}
+          onChange={(event) => setDescription(event.currentTarget.value)}
         />
         <HStack mt='2'>
           <Input
             placeholder='Lat'
             color='black'
-            value={newMarker?.position === null ? '' : newMarker?.position[0]}
+            value={selectedPosition?.position === null ? '' : selectedPosition?.position[0]}
             disabled
           />
           <Input
             placeholder='Long'
             color='black'
-            value={newMarker?.position === null ? '' : newMarker?.position[1]}
+            value={selectedPosition?.position === null ? '' : selectedPosition?.position[1]}
             disabled
           />
           <IconButton
@@ -93,6 +119,7 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
             fontSize="lg"
             variant="solid"
             icon={<FaMapMarkerAlt color="white" />}
+            onClick={handleGetCurrentLocation}
           />
         </HStack>
         <Select
@@ -101,7 +128,7 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
           color="gray.700"
           defaultValue='blue'
           onChange={handleSelectChange}
-          value={newMarker.type}
+          value={selectedPosition.type}
         >
           <option value='blue' disabled>Tipo de Marcação</option>
           <option value='hidrante de coluna'>Hidrante de Coluna</option>
@@ -111,8 +138,8 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
           mt='2'
           placeholder='Localização'
           color='black'
-          value={newMarker.location}
-          onChange={(event) => setNewMarker({ ...newMarker, location: event.currentTarget.value})}
+          value={location}
+          onChange={(event) => setLocation(event.currentTarget.value)}
         />
         
         <Button
@@ -123,6 +150,7 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
           _hover={{ filter: "brightness(0.9)" }}
           _active={{ filter: "brightness(0.8)" }}
           onClick={handleAddMarker}
+          disabled={selectedPosition.position === null}
         >
           Confirmar
         </Button>
