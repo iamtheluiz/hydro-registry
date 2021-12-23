@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, FormEvent, useState } from "react";
 import { Box, Button, HStack, IconButton, Input, Select, Slide, Text, Textarea } from "@chakra-ui/react";
 
 // Icons
@@ -24,8 +24,8 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
         const { latitude, longitude } = position.coords;
 
         setSelectedPosition({
-          position: [latitude, longitude],
-          type: "blue"
+          ...selectedPosition,
+          position: [latitude, longitude]
         });
       });
     }
@@ -40,7 +40,9 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
     });
   }
 
-  function handleAddMarker() {
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+
     const { position, type } = selectedPosition;
 
     if (position === null) {
@@ -78,82 +80,91 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
         rounded='md'
         shadow='md'
       >
-        <Text fontSize="3xl" color="gray.700" mb="2">Cadastro</Text>
-        <Input
-          placeholder='Nome'
-          color='black'
-          value={name}
-          onChange={(event) => setName(event.currentTarget.value)}
-        />
-        <Input
-          placeholder='Imagem'
-          color='black'
-          mt='2'
-          value={cover}
-          onChange={(event) => setCover(event.currentTarget.value)}
-        />
-        <Textarea
-          placeholder='Descrição'
-          color='black'
-          mt='2'
-          value={description}
-          onChange={(event) => setDescription(event.currentTarget.value)}
-        />
-        <HStack mt='2'>
+        <form onSubmit={handleSubmit}>
+          <Text fontSize="3xl" color="gray.700" mb="2">Cadastro</Text>
           <Input
-            placeholder='Lat'
+            placeholder='Nome'
             color='black'
-            value={selectedPosition?.position === null ? '' : selectedPosition?.position[0]}
-            disabled
+            value={name}
+            onChange={(event) => setName(event.currentTarget.value)}
+            required
           />
           <Input
-            placeholder='Long'
+            placeholder='Imagem'
             color='black'
-            value={selectedPosition?.position === null ? '' : selectedPosition?.position[1]}
-            disabled
+            mt='2'
+            value={cover}
+            onChange={(event) => setCover(event.currentTarget.value)}
+            required
           />
-          <IconButton
+          <Textarea
+            placeholder='Descrição'
+            color='black'
+            mt='2'
+            value={description}
+            onChange={(event) => setDescription(event.currentTarget.value)}
+            required
+          />
+          <HStack mt='2'>
+            <Input
+              placeholder='Lat'
+              color='black'
+              value={selectedPosition?.position === null ? '' : selectedPosition?.position[0]}
+              required
+              disabled
+            />
+            <Input
+              placeholder='Long'
+              color='black'
+              value={selectedPosition?.position === null ? '' : selectedPosition?.position[1]}
+              required
+              disabled
+            />
+            <IconButton
+              bg="blue.400"
+              aria-label="Pressione para marcar uma região"
+              size="md"
+              fontSize="lg"
+              variant="solid"
+              icon={<FaMapMarkerAlt color="white" />}
+              onClick={handleGetCurrentLocation}
+            />
+          </HStack>
+          <Select
+            mt='2'
+            cursor="pointer"
+            color="gray.700"
+            defaultValue='blue'
+            onChange={handleSelectChange}
+            value={selectedPosition.type}
+            required
+          >
+            <option value='blue' disabled>Tipo de Marcação</option>
+            <option value='hidrante de coluna'>Hidrante de Coluna</option>
+            <option value='registro'>Registro</option>
+          </Select>
+          <Input
+            mt='2'
+            placeholder='Localização'
+            color='black'
+            value={location}
+            onChange={(event) => setLocation(event.currentTarget.value)}
+            required
+          />
+          
+          <Button
+            type="submit"
             bg="blue.400"
-            aria-label="Pressione para marcar uma região"
-            size="md"
-            fontSize="lg"
-            variant="solid"
-            icon={<FaMapMarkerAlt color="white" />}
-            onClick={handleGetCurrentLocation}
-          />
-        </HStack>
-        <Select
-          mt='2'
-          cursor="pointer"
-          color="gray.700"
-          defaultValue='blue'
-          onChange={handleSelectChange}
-          value={selectedPosition.type}
-        >
-          <option value='blue' disabled>Tipo de Marcação</option>
-          <option value='hidrante de coluna'>Hidrante de Coluna</option>
-          <option value='registro'>Registro</option>
-        </Select>
-        <Input
-          mt='2'
-          placeholder='Localização'
-          color='black'
-          value={location}
-          onChange={(event) => setLocation(event.currentTarget.value)}
-        />
-        
-        <Button
-          bg="blue.400"
-          color="white"
-          w="full"
-          mt="2"
-          _hover={{ filter: "brightness(0.9)" }}
-          _active={{ filter: "brightness(0.8)" }}
-          onClick={handleAddMarker}
-          disabled={selectedPosition.position === null}
-        >
-          Confirmar
-        </Button>
+            color="white"
+            w="full"
+            mt="2"
+            _hover={{ filter: "brightness(0.9)" }}
+            _active={{ filter: "brightness(0.8)" }}
+            disabled={selectedPosition.position === null || name === "" || description === "" || location === "" || cover === "" || selectedPosition.type === "blue"}
+          >
+            Confirmar
+          </Button>
+        </form>
       </Box>
     </Slide>
   )
