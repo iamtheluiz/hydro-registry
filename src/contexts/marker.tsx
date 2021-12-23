@@ -13,7 +13,7 @@ export type Marker = {
   extra?: string;
 }
 
-type SelectedPosition = {
+export type SelectedPosition = {
   position: [number, number] | null;
   type: MarkerTypeEnum;
 }
@@ -22,7 +22,7 @@ interface MarkerContextProps {
   selectedMarker: Marker;
   setSelectedMarker: (marker: Marker) => void;
   selectedPosition: SelectedPosition;
-  setSelectedPosition: (selectedPosition: SelectedPosition) => void;
+  setSelectedPosition: React.Dispatch<React.SetStateAction<SelectedPosition>>;
   markers: Marker[];
   setMarkers: (markers: Marker[]) => void;
   addNewMarker: (marker: Marker) => void;

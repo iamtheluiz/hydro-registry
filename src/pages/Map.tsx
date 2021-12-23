@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { LatLng, Map as MapType } from 'leaflet';
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 
-import { Marker as MarkerType, useMarker } from "../contexts/marker";
+import { Marker as MarkerType, SelectedPosition, useMarker } from "../contexts/marker";
 
 // Icons
 import { FaPlus } from "react-icons/fa";
@@ -39,10 +39,15 @@ export const Map = () => {
   function whenCreated(map: MapType) {
     map.on('click', (event: { latlng: LatLng}) => {
       const { lat, lng } = event.latlng;
-      setSelectedPosition({
-        position: [lat, lng],
-        type: "blue"
-      });
+
+      setSelectedPosition((prevState: SelectedPosition) => {
+        const newState: SelectedPosition = {
+          ...prevState,
+          position: [lat, lng]
+        }
+
+        return newState;
+      })
       toggleCreateMarkerSlide();
     })
   }
