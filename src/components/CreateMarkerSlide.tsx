@@ -3,7 +3,7 @@ import { Box, Button, HStack, IconButton, Input, Select, Slide, Text, Textarea }
 
 // Icons
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { Marker, useMarker } from "../contexts/marker";
+import { useMarker } from "../contexts/marker";
 
 interface CreateMarkerSlideProps {
   isOpen: boolean;
@@ -58,6 +58,8 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
       position,
       type
     });
+
+    // Reset values
     setSelectedPosition({
       position: null,
       type: "blue"

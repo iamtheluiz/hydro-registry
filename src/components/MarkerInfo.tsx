@@ -9,7 +9,7 @@ import { Marker as MarkerType, useMarker } from "../contexts/marker"
 import { DeleteWarningDialog } from "./DeleteWarningDialog";
 
 // Icons
-import { FaMapPin, FaEye, FaTrash } from "react-icons/fa";
+import { FaMapPin, FaRoute, FaTrash } from "react-icons/fa";
 
 // Styles
 import { mapIcons } from "../styles/mapIcons";
@@ -37,6 +37,10 @@ function OnClickCenterMarker({ position, children } : { position: [number, numbe
 export const MarkerInfo: React.FC<MarkerInfoProps> =({ marker }) => {
   const [showDeleteWarningDialog, setShowDeleteWarningDialog] = useState(false);
   const { deleteMarker } = useMarker();
+
+  function handleGoToMarker() {
+    window.open(`https://www.google.com/maps/dir/?api=1&travelmode=driving&layer=traffic&destination=${marker.position[0]},${marker.position[1]}`)
+  }
 
   return (
     <>
@@ -114,7 +118,8 @@ export const MarkerInfo: React.FC<MarkerInfoProps> =({ marker }) => {
               size="md"
               fontSize="lg"
               variant="solid"
-              icon={<FaEye color="white" />}
+              icon={<FaRoute color="white" />}
+              onClick={() => handleGoToMarker()}
             />
             <IconButton
               zIndex="1001"
