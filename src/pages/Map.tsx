@@ -74,14 +74,12 @@ export const Map = () => {
         onToggle={toggleCreateMarkerSlide}
       />
       <IconButton
-        zIndex="1001"
+        zIndex="999"
         position="absolute"
         top="2"
         right="2"
-        bg="blue.400"
         colorScheme="blue"
         aria-label="Pressione para marcar uma região"
-        size="md"
         fontSize="lg"
         variant="solid"
         icon={<FaPlus color="white" />}
@@ -92,10 +90,8 @@ export const Map = () => {
         position="absolute"
         top="14"
         right="2"
-        bg="blue.400"
         colorScheme="blue"
         aria-label="Pressione para marcar uma região"
-        size="md"
         fontSize="lg"
         variant="solid"
         icon={<BsFillGridFill color="white" />}
