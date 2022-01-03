@@ -51,10 +51,6 @@ export const Map = () => {
       toggleCreateMarkerSlide();
     })
   }
-
-  function handleOpenCreateMarkerSlide() {
-    toggleCreateMarkerSlide();
-  }
   
   function handleNavigateToList() {
     navigate('/list');
@@ -83,7 +79,7 @@ export const Map = () => {
         fontSize="lg"
         variant="solid"
         icon={<FaPlus color="white" />}
-        onClick={handleOpenCreateMarkerSlide}
+        onClick={toggleCreateMarkerSlide}
       />
       <IconButton
         zIndex="999"
@@ -126,7 +122,7 @@ export const Map = () => {
                 position: null,
                 type: "blue"
               });
-              toggleCreateMarkerSlide();
+              createMarkerSlideIsOpen && toggleCreateMarkerSlide();
             }}}
           />
         )}
