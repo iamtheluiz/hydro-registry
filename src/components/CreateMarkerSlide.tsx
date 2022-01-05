@@ -13,6 +13,7 @@ import {
   Textarea
 } from "@chakra-ui/react";
 import { useMarker } from "../contexts/marker";
+import { getCurrentPosition } from "../utils/getCurrentPosition";
 
 // Firebase
 import { storage } from "../services/firebase";
@@ -36,17 +37,15 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
 
   const { selectedPosition, addNewMarker, setSelectedPosition } = useMarker();
 
-  function handleGetCurrentLocation() {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        const { latitude, longitude } = position.coords;
+  function handleGetCurrentPosition() {
+    const position = getCurrentPosition();
 
-        setSelectedPosition({
-          ...selectedPosition,
-          position: [latitude, longitude]
-        });
-      });
-    }
+    if (position === null) return;
+
+    setSelectedPosition({
+      ...selectedPosition,
+      position
+    });
   }
 
   function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
@@ -212,12 +211,12 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
                 />
                 <IconButton
                   bg="blue.400"
-                  aria-label="Pressione para marcar uma região"
+                  aria-label="Pressione para marcar sua posição"
                   size="md"
                   fontSize="lg"
                   variant="solid"
                   icon={<FaMapMarkerAlt color="white" />}
-                  onClick={handleGetCurrentLocation}
+                  onClick={handleGetCurrentPosition}
                 />
               </HStack>
               <Input
