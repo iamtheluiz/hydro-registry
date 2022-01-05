@@ -1,9 +1,25 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
-import { Box, Button, Flex, HStack, IconButton, Input, Select, Slide, Text, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  HStack,
+  VStack,
+  IconButton,
+  Input,
+  Select,
+  Slide,
+  Text,
+  Textarea
+} from "@chakra-ui/react";
+import { useMarker } from "../contexts/marker";
+
+// Firebase
+import { storage } from "../services/firebase";
+import { ref as storageRef, uploadBytes as uploadBytesStorage } from "firebase/storage";
 
 // Icons
-import { FaMapMarkerAlt, FaTimes } from "react-icons/fa";
-import { useMarker } from "../contexts/marker";
+import { FaMapMarkerAlt, FaTimes, FaImage } from "react-icons/fa";
 
 interface CreateMarkerSlideProps {
   isOpen: boolean;
@@ -11,9 +27,11 @@ interface CreateMarkerSlideProps {
 }
 
 export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, onToggle }) => {
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
+
+  const [selectedCover, setSelectedCover] = useState<File>();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [cover, setCover] = useState("");
   const [location, setLocation] = useState("");
 
   const { selectedPosition, addNewMarker, setSelectedPosition } = useMarker();
@@ -31,6 +49,18 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
     }
   }
 
+  function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+
+    if (files === null) return;
+
+    const cover = files[0];
+    const coverUrl = URL.createObjectURL(cover);
+
+    setCoverPreviewUrl(coverUrl);
+    setSelectedCover(cover);
+  }
+
   function handleSelectChange(event: ChangeEvent<HTMLSelectElement>) {
     const { value: type } = event.currentTarget;
 
@@ -40,21 +70,29 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
     });
   }
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
     const { position, type } = selectedPosition;
 
-    if (position === null) {
+    if (position === null || selectedCover === undefined) {
       return;
     }
+
+    const date = new Date();
+
+    // Upload image to storage
+    const coverUrl = `images/${date.getTime()}_${selectedCover.name}`;
+    const coversCollection = storageRef(storage, coverUrl);
+
+    await uploadBytesStorage(coversCollection, selectedCover);
 
     addNewMarker({
       name,
       description,
-      cover,
+      cover: coverUrl,
       location,
-      coverUpdatedAt: new Date(),
+      coverUpdatedAt: date,
       position,
       type
     });
@@ -81,7 +119,7 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
         <Flex justifyContent="end">
           <IconButton
             zIndex="999"
-            colorScheme="blue"
+            colorScheme="red"
             aria-label="Pressione para marcar uma região"
             fontSize="lg"
             variant="solid"
@@ -97,90 +135,111 @@ export const CreateMarkerSlide: React.FC<CreateMarkerSlideProps> = ({ isOpen, on
           rounded='md'
           shadow='md'
         >
-          <form onSubmit={handleSubmit}>
-            <Text fontSize="3xl" color="gray.700" mb="2">Cadastro</Text>
-            <Input
-              placeholder='Nome'
-              color='black'
-              value={name}
-              onChange={(event) => setName(event.currentTarget.value)}
-              required
-            />
-            <Input
-              placeholder='Imagem'
-              color='black'
-              mt='2'
-              value={cover}
-              onChange={(event) => setCover(event.currentTarget.value)}
-              required
-            />
-            <Textarea
-              placeholder='Descrição'
-              color='black'
-              mt='2'
-              value={description}
-              onChange={(event) => setDescription(event.currentTarget.value)}
-              required
-            />
-            <HStack mt='2'>
+          <form id="MarkerForm" onSubmit={handleSubmit}>
+            <VStack spacing="2">
+              <Text w="full" fontSize="3xl" color="gray.700" mb="2" textAlign="left">Cadastro</Text>
+              <label htmlFor="cover" style={{ width: "100%" }}>
+                <Flex
+                  w="full"
+                  h="48"
+                  cursor="pointer"
+                  direction="column"
+                  justify="center"
+                  align="center"
+                  border="1px"
+                  borderColor="inherit"
+                  borderRadius="md"
+                  backgroundImage={coverPreviewUrl}
+                  backgroundSize="100% auto"
+                  backgroundPosition="50% 50%"
+                >
+                  {coverPreviewUrl === '' && (
+                    <>
+                      <FaImage color="#718096" size={32} />
+                      <Text color="gray.500">Selecione uma imagem</Text>
+                    </>
+                  )}
+                </Flex>
+                <input
+                  type="file"
+                  name="cover"
+                  accept="image/*"
+                  id="cover"
+                  style={{ display: "none" }}
+                  onChange={handleCoverChange}
+                />
+              </label>
               <Input
-                placeholder='Lat'
+                placeholder='Nome'
                 color='black'
-                value={selectedPosition?.position === null ? '' : selectedPosition?.position[0]}
+                value={name}
+                onChange={(event) => setName(event.currentTarget.value)}
                 required
-                disabled
               />
+              <Select
+                cursor="pointer"
+                color="gray.700"
+                defaultValue='blue'
+                onChange={handleSelectChange}
+                value={selectedPosition.type}
+                required
+              >
+                <option value='blue' disabled>Tipo de Marcação</option>
+                <option value='hidrante de coluna'>Hidrante de Coluna</option>
+                <option value='registro'>Registro</option>
+              </Select>
+              <Textarea
+                placeholder='Descrição'
+                color='black'
+                value={description}
+                onChange={(event) => setDescription(event.currentTarget.value)}
+                required
+              />
+              <HStack>
+                <Input
+                  placeholder='Lat'
+                  color='black'
+                  value={selectedPosition?.position === null ? '' : selectedPosition?.position[0]}
+                  required
+                  disabled
+                />
+                <Input
+                  placeholder='Long'
+                  color='black'
+                  value={selectedPosition?.position === null ? '' : selectedPosition?.position[1]}
+                  required
+                  disabled
+                />
+                <IconButton
+                  bg="blue.400"
+                  aria-label="Pressione para marcar uma região"
+                  size="md"
+                  fontSize="lg"
+                  variant="solid"
+                  icon={<FaMapMarkerAlt color="white" />}
+                  onClick={handleGetCurrentLocation}
+                />
+              </HStack>
               <Input
-                placeholder='Long'
+                placeholder='Localização'
                 color='black'
-                value={selectedPosition?.position === null ? '' : selectedPosition?.position[1]}
+                value={location}
+                onChange={(event) => setLocation(event.currentTarget.value)}
                 required
-                disabled
               />
-              <IconButton
+              
+              <Button
+                type="submit"
                 bg="blue.400"
-                aria-label="Pressione para marcar uma região"
-                size="md"
-                fontSize="lg"
-                variant="solid"
-                icon={<FaMapMarkerAlt color="white" />}
-                onClick={handleGetCurrentLocation}
-              />
-            </HStack>
-            <Select
-              mt='2'
-              cursor="pointer"
-              color="gray.700"
-              defaultValue='blue'
-              onChange={handleSelectChange}
-              value={selectedPosition.type}
-              required
-            >
-              <option value='blue' disabled>Tipo de Marcação</option>
-              <option value='hidrante de coluna'>Hidrante de Coluna</option>
-              <option value='registro'>Registro</option>
-            </Select>
-            <Input
-              mt='2'
-              placeholder='Localização'
-              color='black'
-              value={location}
-              onChange={(event) => setLocation(event.currentTarget.value)}
-              required
-            />
-            
-            <Button
-              type="submit"
-              bg="blue.400"
-              color="white"
-              w="full"
-              mt="2"
-              _hover={{ filter: "brightness(0.9)" }}
-              _active={{ filter: "brightness(0.8)" }}
-              disabled={selectedPosition.position === null || name === "" || description === "" || location === "" || cover === "" || selectedPosition.type === "blue"}
-            >
-              Confirmar
-            </Button>
+                color="white"
+                w="full"
+                _hover={{ filter: "brightness(0.9)" }}
+                _active={{ filter: "brightness(0.8)" }}
+                disabled={selectedPosition.position === null || name === "" || description === "" || location === "" || selectedPosition.type === "blue"}
+              >
+                Confirmar
+              </Button>
+            </VStack>
           </form>
         </Box>
       </Flex>

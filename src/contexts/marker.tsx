@@ -1,8 +1,22 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+// Firebase
+import { database, storage } from "../services/firebase";
+import {
+  ref as databaseRef,
+  push as databasePush,
+  remove as databaseRemove,
+  onValue as databaseOnValue,
+} from "firebase/database";
+import {
+  deleteObject as storageDelete,
+  ref as storageRef
+} from "firebase/storage";
 
 export type MarkerTypeEnum = 'registro' | 'hidrante de coluna' | 'blue' | string;
 
 export type Marker = {
+  id?: string;
   name: string;
   type: MarkerTypeEnum;
   description: string;
@@ -11,6 +25,10 @@ export type Marker = {
   position: [number, number];
   location: string;
   extra?: string;
+}
+
+type FirebaseMarker = {
+  [key: string]: Marker
 }
 
 export type SelectedPosition = {
@@ -37,37 +55,47 @@ export const MarkerProvider: React.FC = ({ children }) => {
     position: null,
     type: "blue"
   } as SelectedPosition);
-  const [markers, setMarkers] = useState<Marker[]>([
-    {
-      name: 'Hidrante de Coluna - Rua Samambaia',
-      type: 'hidrante de coluna',
-      description: 'Hidrante de coluna funcional dentro dos parametros exigidos.',
-      cover: 'https://www.bucka.com.br/wp-content/uploads/2017/10/Como-funciona-um-hidrante-1.jpg',
-      coverUpdatedAt: new Date(),
-      position: [-24.166623, -46.760676],
-      location: 'Rua Samambaia, número 125'
-    },
-    {
-      name: 'Registro de Gaveta - Hospital',
-      type: 'registro',
-      description: 'Registro muito louco atrás do hospital.',
-      cover: 'https://www.araras.sp.gov.br/im/images/auto/14926_saema_registro.jpg',
-      coverUpdatedAt: new Date(),
-      position: [-24.180183, -46.783818],
-      location: 'Rua Dom José Gaspar da Silva, número 103'
-    }
-  ]);
+  const [markers, setMarkers] = useState<Marker[]>([]);
 
-  function addNewMarker(marker: Marker) {
+  useEffect(() => {
+    const markerRef = databaseRef(database, 'markers');
+
+    databaseOnValue(markerRef, (snapshot) => {
+      const data: FirebaseMarker = snapshot.val();
+
+      const parsedMarkers = Object.entries(data ?? {}).map(([key, value]) => {
+        return {
+          id: key,
+          ...value
+        }
+      });
+
+      if (data !== null) {
+        setMarkers(parsedMarkers);
+      }
+    })
+  }, []);
+
+  async function addNewMarker(marker: Marker) {
+    const markerRef = databaseRef(database, 'markers');
+
+    await databasePush(markerRef, marker);
     setMarkers([
       ...markers,
       marker
     ]);
   }
 
-  function deleteMarker(marker: Marker) {
-    const newMarkerList = markers.filter((value) => value !== marker);
+  async function deleteMarker(marker: Marker) {
+    // Remove marker from database
+    const markerRef = databaseRef(database, `markers/${marker.id}`);
+    await databaseRemove(markerRef);
 
+    // Remove cover from storage
+    const coverRef = storageRef(storage, marker.cover);
+    await storageDelete(coverRef);
+  
+    const newMarkerList = markers.filter((value) => value !== marker);
     setMarkers(newMarkerList);
   }
 

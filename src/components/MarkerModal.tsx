@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import {
   Image,
   Text,
@@ -12,8 +12,10 @@ import {
   ModalCloseButton,
   Button
 } from "@chakra-ui/react";
-
 import { Marker } from "../contexts/marker"
+
+// Firebase
+import { getBlob, getStorage, ref } from "firebase/storage";
 
 interface MarkerModalProps {
   marker: Marker;
@@ -22,6 +24,18 @@ interface MarkerModalProps {
 }
 
 export const MarkerModal: React.FC<MarkerModalProps> =({ marker, isOpen, setIsOpen }) => {
+  const [cover, setCover] = useState<Blob>();
+
+  useEffect(() => {
+    const storage = getStorage();
+    const coverRef = ref(storage, marker.cover);
+
+    getBlob(coverRef)
+      .then(blob => {
+        setCover(blob);
+      })
+  }, [marker.cover]);
+
   return (
     <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size="xl">
       <ModalOverlay />
@@ -38,7 +52,9 @@ export const MarkerModal: React.FC<MarkerModalProps> =({ marker, isOpen, setIsOp
               <b>Localização: </b>
               {marker.location}
             </Text>
-            <Image src={marker.cover} w="full" h="auto" />
+            {cover && (
+              <Image src={URL.createObjectURL(cover)} w="full" h="auto" />
+            )}
           </Flex>
         </ModalBody>
 

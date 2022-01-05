@@ -56,7 +56,7 @@ export const List = () => {
           <Text color="gray.500">Não existem marcações cadastradas!</Text>
         </Flex>
       )}
-      <SimpleGrid columns={[1, null, 2]} spacing="1rem" alignItems="center" p="4" mt="2" maxW="container.md">
+      <SimpleGrid columns={[1, null, 2]} spacing="1rem" alignItems="center" p="4" mt="2" maxW="container.md" w="full">
         {markers.map(marker => (
           <MarkerInfo
             key={`${marker.position[0]}-${marker.position[1]}`}
