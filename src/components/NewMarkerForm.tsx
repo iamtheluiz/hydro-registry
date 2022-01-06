@@ -2,7 +2,6 @@ import React, { ChangeEvent, FormEvent, useState } from "react";
 import {
   Box,
   Button,
-  Flex,
   HStack,
   VStack,
   IconButton,
@@ -22,11 +21,10 @@ import {
 } from "firebase/storage";
 
 // Icons
-import { FaMapMarkerAlt, FaImage } from "react-icons/fa";
+import { FaMapMarkerAlt } from "react-icons/fa";
+import { CoverInput } from "./CoverInput";
 
 export const NewMarkerForm: React.FC = () => {
-  const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
-
   const [selectedCover, setSelectedCover] = useState<File>();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -43,18 +41,6 @@ export const NewMarkerForm: React.FC = () => {
       ...selectedPosition,
       position
     });
-  }
-
-  function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
-    const files = event.target.files;
-
-    if (files === null) return;
-
-    const cover = files[0];
-    const coverUrl = URL.createObjectURL(cover);
-
-    setCoverPreviewUrl(coverUrl);
-    setSelectedCover(cover);
   }
 
   function handleSelectChange(event: ChangeEvent<HTMLSelectElement>) {
@@ -112,37 +98,7 @@ export const NewMarkerForm: React.FC = () => {
       <form id="MarkerForm" onSubmit={handleSubmit}>
         <VStack spacing="2">
           <Text w="full" fontSize="3xl" color="gray.700" mb="2" textAlign="left">Cadastro</Text>
-          <label htmlFor="cover" style={{ width: "100%" }}>
-            <Flex
-              w="full"
-              h="48"
-              cursor="pointer"
-              direction="column"
-              justify="center"
-              align="center"
-              border="1px"
-              borderColor="inherit"
-              borderRadius="md"
-              backgroundImage={coverPreviewUrl}
-              backgroundSize="100% auto"
-              backgroundPosition="50% 50%"
-            >
-              {coverPreviewUrl === '' && (
-                <>
-                  <FaImage color="#718096" size={32} />
-                  <Text color="gray.500">Selecione uma imagem</Text>
-                </>
-              )}
-            </Flex>
-            <input
-              type="file"
-              name="cover"
-              accept="image/*"
-              id="cover"
-              style={{ display: "none" }}
-              onChange={handleCoverChange}
-            />
-          </label>
+          <CoverInput setCover={setSelectedCover} />
           <Input
             placeholder='Nome'
             color='black'
