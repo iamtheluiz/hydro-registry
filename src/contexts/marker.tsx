@@ -80,10 +80,6 @@ export const MarkerProvider: React.FC = ({ children }) => {
     const markerRef = databaseRef(database, 'markers');
 
     await databasePush(markerRef, marker);
-    setMarkers([
-      ...markers,
-      marker
-    ]);
   }
 
   async function deleteMarker(marker: Marker) {

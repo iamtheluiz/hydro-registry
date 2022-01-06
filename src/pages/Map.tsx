@@ -16,7 +16,8 @@ import { mapIcons } from "../styles/mapIcons";
 
 // Components
 import { MarkerModal } from "../components/MarkerModal";
-import { CreateMarkerSlide } from "../components/CreateMarkerSlide";
+import { SideSlide } from "../components/SideSlide";
+import { NewMarkerForm } from "../components/NewMarkerForm";
 
 export const Map = () => {
   const initialPosition = { lat: -24.1819477, lng: -46.7920167 };
@@ -27,14 +28,23 @@ export const Map = () => {
 
   const {
     isOpen: createMarkerSlideIsOpen,
-    onToggle: toggleCreateMarkerSlide
+    onToggle: toggleCreateMarkerSlide,
   } = useDisclosure();
 
+  // Info modal
   useEffect(() => {
     if (!modalIsOpen) {
       setSelectedMarker({} as MarkerType);
     }
   }, [modalIsOpen]);
+
+  // Create new marker slide
+  useEffect(() => {
+    if (selectedPosition.position === null && createMarkerSlideIsOpen) {
+      // Close slide
+      toggleCreateMarkerSlide();
+    }
+  }, [selectedPosition]);
 
   function whenCreated(map: MapType) {
     map.on('click', (event: { latlng: LatLng}) => {
@@ -57,76 +67,80 @@ export const Map = () => {
   }
 
   return (
-    <Box w="full">
-      {selectedMarker.cover && (
+    <>
+      {selectedMarker.id && (
         <MarkerModal
           marker={selectedMarker}
           isOpen={modalIsOpen}
           setIsOpen={setModalIsOpen}
         />
       )}
-      <CreateMarkerSlide
-        isOpen={createMarkerSlideIsOpen}
-        onToggle={toggleCreateMarkerSlide}
-      />
-      <IconButton
-        zIndex="999"
-        position="absolute"
-        top="2"
-        right="2"
-        colorScheme="blue"
-        aria-label="Pressione para marcar uma região"
-        fontSize="lg"
-        variant="solid"
-        icon={<FaPlus color="white" />}
-        onClick={toggleCreateMarkerSlide}
-      />
-      <IconButton
-        zIndex="999"
-        position="absolute"
-        top="14"
-        right="2"
-        colorScheme="blue"
-        aria-label="Pressione para marcar uma região"
-        fontSize="lg"
-        variant="solid"
-        icon={<BsFillGridFill color="white" />}
-        onClick={handleNavigateToList}
-      />
-      <MapContainer
-        center={initialPosition}
-        zoom={13}
-        zoomControl={false}
-        style={{ height: "100vh" }}
-        whenCreated={whenCreated}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      <Box w="full">
+        <SideSlide
+          isOpen={createMarkerSlideIsOpen}
+          onToggle={toggleCreateMarkerSlide}
+        >
+          <NewMarkerForm />
+        </SideSlide>
+        <IconButton
+          zIndex="999"
+          position="absolute"
+          top="2"
+          right="2"
+          colorScheme="blue"
+          aria-label="Pressione para marcar uma região"
+          fontSize="lg"
+          variant="solid"
+          icon={<FaPlus color="white" />}
+          onClick={toggleCreateMarkerSlide}
         />
-        {markers.map(marker => (
-          <Marker
-            key={`${marker.position[0]}-${marker.position[1]}`}
-            icon={mapIcons[marker.type]}
-            position={marker.position}
-            eventHandlers={{ click: () => { setSelectedMarker(marker); setModalIsOpen(true); }}}
+        <IconButton
+          zIndex="999"
+          position="absolute"
+          top="14"
+          right="2"
+          colorScheme="blue"
+          aria-label="Pressione para marcar uma região"
+          fontSize="lg"
+          variant="solid"
+          icon={<BsFillGridFill color="white" />}
+          onClick={handleNavigateToList}
+        />
+        <MapContainer
+          center={initialPosition}
+          zoom={13}
+          zoomControl={false}
+          style={{ height: "100vh" }}
+          whenCreated={whenCreated}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-        ))}
-        {(selectedPosition.position !== undefined && selectedPosition.position !== null) && (
-          <Marker
-            key={`${selectedPosition!.position[0]}-${selectedPosition!.position[1]}`}
-            icon={mapIcons[selectedPosition.type]}
-            position={selectedPosition.position}
-            eventHandlers={{ click: () => {
-              setSelectedPosition({
-                position: null,
-                type: "blue"
-              });
-              createMarkerSlideIsOpen && toggleCreateMarkerSlide();
-            }}}
-          />
-        )}
-      </MapContainer>
-    </Box>
+          {markers.map(marker => (
+            <Marker
+              key={`${marker.position[0]}-${marker.position[1]}`}
+              icon={mapIcons[marker.type]}
+              position={marker.position}
+              eventHandlers={{ click: () => { setSelectedMarker(marker); setModalIsOpen(true); }}}
+            />
+          ))}
+          {(selectedPosition.position !== undefined && selectedPosition.position !== null) && (
+            <Marker
+              key={`${selectedPosition!.position[0]}-${selectedPosition!.position[1]}`}
+              icon={mapIcons[selectedPosition.type]}
+              position={selectedPosition.position}
+              eventHandlers={{ click: () => {
+                setSelectedPosition({
+                  position: null,
+                  type: "blue"
+                });
+                createMarkerSlideIsOpen && toggleCreateMarkerSlide();
+              }}}
+            />
+          )}
+        </MapContainer>
+      </Box>
+    </>
   )
 }
