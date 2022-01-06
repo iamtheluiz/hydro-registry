@@ -7,6 +7,9 @@ import * as serviceWorker from "./serviceWorker"
 
 import "./services/firebase";
 
+// Map Style
+import "leaflet/dist/leaflet.css";
+
 ReactDOM.render(
   <React.StrictMode>
     <ColorModeScript />

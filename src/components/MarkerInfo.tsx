@@ -1,8 +1,6 @@
 import React, { useState } from "react"
 import { Badge, Box, Flex, HStack, IconButton } from "@chakra-ui/react";
-
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
-
 import { Marker as MarkerType, useMarker } from "../contexts/marker"
 
 // Components
@@ -14,11 +12,17 @@ import { FaMapPin, FaRoute, FaTrash } from "react-icons/fa";
 // Styles
 import { mapIcons } from "../styles/mapIcons";
 
+interface OnClickCenterMarkerProps {
+  position: [number, number];
+}
+
 interface MarkerInfoProps {
   marker: MarkerType;
 }
 
-function OnClickCenterMarker({ position, children } : { position: [number, number], children: React.ReactNode }) {
+const OnClickCenterMarker: React.FC<OnClickCenterMarkerProps> = ({
+  position, children
+}) => {
   const map = useMap();
 
   function handleCenterMarker() {

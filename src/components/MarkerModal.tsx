@@ -23,7 +23,9 @@ interface MarkerModalProps {
   setIsOpen: (value: boolean) => void;
 }
 
-export const MarkerModal: React.FC<MarkerModalProps> =({ marker, isOpen, setIsOpen }) => {
+export const MarkerModal: React.FC<MarkerModalProps> =({
+  marker, isOpen, setIsOpen
+}) => {
   const [cover, setCover] = useState<Blob>();
 
   useEffect(() => {

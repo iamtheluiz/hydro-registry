@@ -21,7 +21,12 @@ export const SideSlide: React.FC<CreateMarkerSlideProps> = ({
     <Slide
       direction={direction}
       in={isOpen}
-      style={{ zIndex: 1000, maxWidth: 460, maxHeight: '100vh', backgroundColor: "#00000070" }}
+      style={{
+        zIndex: 1000,
+        maxWidth: 460,
+        maxHeight: '100vh',
+        backgroundColor: "#00000070"
+      }}
     >
       <Flex
         p="2"

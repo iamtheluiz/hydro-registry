@@ -4,14 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { LatLng, Map as MapType } from 'leaflet';
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 
-import { Marker as MarkerType, SelectedPosition, useMarker } from "../contexts/marker";
+import {
+  useMarker,
+  SelectedPosition,
+  Marker as MarkerType
+} from "../contexts/marker";
 
 // Icons
 import { FaPlus } from "react-icons/fa";
 import { BsFillGridFill } from "react-icons/bs";
 
 // Styles
-import "leaflet/dist/leaflet.css";  // Map Style
 import { mapIcons } from "../styles/mapIcons";
 
 // Components
@@ -20,10 +23,16 @@ import { SideSlide } from "../components/SideSlide";
 import { NewMarkerForm } from "../components/NewMarkerForm";
 
 export const Map = () => {
-  const initialPosition = { lat: -24.1819477, lng: -46.7920167 };
-
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const { markers, selectedMarker, setSelectedMarker, selectedPosition, setSelectedPosition } = useMarker();
+
+  const initialPosition = { lat: -24.1819477, lng: -46.7920167 };
+  const {
+    markers,
+    selectedMarker,
+    setSelectedMarker,
+    selectedPosition,
+    setSelectedPosition
+  } = useMarker();
   const navigate = useNavigate();
 
   const {
@@ -122,7 +131,12 @@ export const Map = () => {
               key={`${marker.position[0]}-${marker.position[1]}`}
               icon={mapIcons[marker.type]}
               position={marker.position}
-              eventHandlers={{ click: () => { setSelectedMarker(marker); setModalIsOpen(true); }}}
+              eventHandlers={{
+                click: () => {
+                  setSelectedMarker(marker);
+                  setModalIsOpen(true);
+                }
+              }}
             />
           ))}
           {(selectedPosition.position !== undefined && selectedPosition.position !== null) && (

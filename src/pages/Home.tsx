@@ -21,7 +21,12 @@ export const Home = () => {
       <Image src={BannerImage} w="96" />
       <VStack spacing="1rem" justify="center" mt="4">
         <Heading>Hydro Register</Heading>
-        <Text w="full" align="center">Cadastre os pontos de registros e hidrantes da região em uma plataforma online!</Text>
+        <Text
+          w="full"
+          align="center"
+        >
+          Cadastre os pontos de registros e hidrantes da região em uma plataforma online!
+        </Text>
         <Button
           w="28"
           colorScheme="blue"

@@ -10,7 +10,7 @@ import "leaflet/dist/leaflet.css";  // Map Style
 
 // Components
 import { MarkerInfo } from "../components/MarkerInfo";
-import { Flex, SimpleGrid , IconButton, Text } from "@chakra-ui/react";
+import { Flex, Heading, SimpleGrid , IconButton, Text } from "@chakra-ui/react";
 
 export const List = () => {
   const { markers } = useMarker();
@@ -24,7 +24,7 @@ export const List = () => {
     <Flex align="center" p="4" direction="column">
       <Flex maxW="container.md" w="full" direction="row">
         <Flex direction="column" flex="1">
-          <Text fontSize="3xl" fontWeight="medium">Marcações</Text>
+          <Heading fontSize="3xl" fontWeight="medium">Marcações</Heading>
           <Text>{markers.length} Pontos registrados</Text>
         </Flex>
         <Flex align="center">
@@ -56,7 +56,15 @@ export const List = () => {
           <Text color="gray.500">Não existem marcações cadastradas!</Text>
         </Flex>
       )}
-      <SimpleGrid columns={[1, null, 2]} spacing="1rem" alignItems="center" p="4" mt="2" maxW="container.md" w="full">
+      <SimpleGrid
+        w="full"
+        maxW="container.md"
+        alignItems="center"
+        p="4"
+        mt="2"
+        spacing="1rem"
+        columns={[1, null, 2]}
+      >
         {markers.map(marker => (
           <MarkerInfo
             key={`${marker.position[0]}-${marker.position[1]}`}

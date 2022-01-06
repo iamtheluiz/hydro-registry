@@ -24,7 +24,7 @@ import {
 // Icons
 import { FaMapMarkerAlt, FaImage } from "react-icons/fa";
 
-export const NewMarkerForm: React.FC =() => {
+export const NewMarkerForm: React.FC = () => {
   const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
 
   const [selectedCover, setSelectedCover] = useState<File>();

@@ -10,8 +10,6 @@ import {
   Button
 } from "@chakra-ui/react"
 
-import { Marker } from "../contexts/marker"
-
 interface DeleteWarningDialogProps {
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
@@ -19,7 +17,9 @@ interface DeleteWarningDialogProps {
   onConfirm: () => void;
 }
 
-export const DeleteWarningDialog: React.FC<DeleteWarningDialogProps> = ({ isOpen, setIsOpen, name, onConfirm }) => {
+export const DeleteWarningDialog: React.FC<DeleteWarningDialogProps> = ({
+  isOpen, setIsOpen, name, onConfirm
+}) => {
   const onClose = () => setIsOpen(false)
   const cancelRef = useRef<any>()
 

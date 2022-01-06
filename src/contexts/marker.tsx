@@ -50,12 +50,13 @@ interface MarkerContextProps {
 const MarkerContext = createContext<MarkerContextProps | null>(null);
 
 export const MarkerProvider: React.FC = ({ children }) => {
+  const [markers, setMarkers] = useState<Marker[]>([]);
+
   const [selectedMarker, setSelectedMarker] = useState<Marker>({} as Marker);
   const [selectedPosition, setSelectedPosition] = useState<SelectedPosition>({
     position: null,
     type: "blue"
   } as SelectedPosition);
-  const [markers, setMarkers] = useState<Marker[]>([]);
 
   useEffect(() => {
     const markerRef = databaseRef(database, 'markers');
