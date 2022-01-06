@@ -8,10 +8,11 @@ import {
   Input,
   Select,
   Text,
-  Textarea
+  Textarea,
+  FormControl,
+  FormLabel
 } from "@chakra-ui/react";
-import { useMarker } from "../contexts/marker";
-import { getCurrentPosition } from "../utils/getCurrentPosition";
+import { SelectedPosition, useMarker } from "../contexts/marker";
 
 // Firebase
 import { storage } from "../services/firebase";
@@ -23,8 +24,19 @@ import {
 // Icons
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { CoverInput } from "./CoverInput";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { mapIcons } from "../styles/mapIcons";
+import { LatLng, Map } from "leaflet";
 
-export const NewMarkerForm: React.FC = () => {
+interface NewMarkerFormProps {
+  showTitle?: boolean;
+  showMap?: boolean;
+}
+
+export const NewMarkerForm: React.FC<NewMarkerFormProps> = ({
+  showTitle = true, showMap = false
+}) => {
+  const initialPosition = [-24.1819477, -46.7920167];
   const [selectedCover, setSelectedCover] = useState<File>();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -32,14 +44,29 @@ export const NewMarkerForm: React.FC = () => {
 
   const { selectedPosition, addNewMarker, setSelectedPosition } = useMarker();
 
+  function whenCreated(map: Map) {
+    map.on('click', (event: { latlng: LatLng}) => {
+      const { lat, lng } = event.latlng;
+
+      setSelectedPosition((prevState: SelectedPosition) => {
+        const newState: SelectedPosition = {
+          ...prevState,
+          position: [lat, lng]
+        }
+
+        return newState;
+      });
+    })
+  }
+
   function handleGetCurrentPosition() {
-    const position = getCurrentPosition();
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const { latitude, longitude } = position.coords;
 
-    if (position === null) return;
-
-    setSelectedPosition({
-      ...selectedPosition,
-      position
+      setSelectedPosition({
+        ...selectedPosition,
+        position: [latitude, longitude]
+      });
     });
   }
 
@@ -50,6 +77,19 @@ export const NewMarkerForm: React.FC = () => {
       ...selectedPosition,
       type
     });
+  }
+
+  function handleResetForm() {
+    setSelectedCover(undefined);
+    setName("");
+    setDescription("");
+    setLocation("");
+    setSelectedPosition({
+      position: null,
+      type: "blue"
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -88,87 +128,147 @@ export const NewMarkerForm: React.FC = () => {
 
   return (
     <Box
-      p='28px'
-      color='white'
-      mt='2'
-      bg='white'
-      rounded='md'
-      shadow='md'
+      p="28px"
+      color="gray.600"
+      mt="2"
+      bg="white"
+      rounded="md"
     >
       <form id="MarkerForm" onSubmit={handleSubmit}>
         <VStack spacing="2">
-          <Text w="full" fontSize="3xl" color="gray.700" mb="2" textAlign="left">Cadastro</Text>
-          <CoverInput setCover={setSelectedCover} />
-          <Input
-            placeholder='Nome'
-            color='black'
-            value={name}
-            onChange={(event) => setName(event.currentTarget.value)}
-            required
-          />
-          <Select
-            cursor="pointer"
-            color="gray.700"
-            defaultValue='blue'
-            onChange={handleSelectChange}
-            value={selectedPosition.type}
-            required
-          >
-            <option value='blue' disabled>Tipo de Marcação</option>
-            <option value='hidrante de coluna'>Hidrante de Coluna</option>
-            <option value='registro'>Registro</option>
-          </Select>
-          <Textarea
-            placeholder='Descrição'
-            color='black'
-            value={description}
-            onChange={(event) => setDescription(event.currentTarget.value)}
-            required
-          />
-          <HStack>
+          {showTitle && (
+            <Text
+              w="full"
+              fontSize="3xl"
+              color="gray.700"
+              mb="2"
+              textAlign="left"
+            >
+              Cadastro
+            </Text>
+          )}
+          <CoverInput cover={selectedCover} setCover={setSelectedCover} />
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" htmlFor="name">Nome da Marcação</FormLabel>
             <Input
-              placeholder='Lat'
-              color='black'
-              value={selectedPosition?.position === null ? '' : selectedPosition?.position[0]}
+              id="name"
+              placeholder="Ex: Hidrante de Coluna - Bombeiros"
+              color="gray.600"
+              value={name}
+              onChange={(event) => setName(event.currentTarget.value)}
               required
-              disabled
             />
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" htmlFor="type">Tipo</FormLabel>
+            <Select
+              id="type"
+              cursor="pointer"
+              color="gray.600"
+              onChange={handleSelectChange}
+              value={selectedPosition.type}
+              required
+            >
+              <option value="blue" disabled>Selecione um Tipo</option>
+              <option value="hidrante de coluna">Hidrante de Coluna</option>
+              <option value="registro">Registro</option>
+            </Select>
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" htmlFor="description">Descrição</FormLabel>
+            <Textarea
+              id="description"
+              placeholder="Ex: Hidrante presente nos fundos do quartel dos bombeiros."
+              color="gray.600"
+              value={description}
+              onChange={(event) => setDescription(event.currentTarget.value)}
+              required
+            />
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel fontSize="sm">Posição</FormLabel>
+            {showMap && (
+              <MapContainer
+                center={{
+                  lat: initialPosition[0],
+                  lng: initialPosition[1],
+                }}
+                zoom={13}
+                zoomControl={false}
+                whenCreated={whenCreated}
+                style={{ height: 300, borderRadius: "0.375rem" }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {(selectedPosition.position !== undefined && selectedPosition.position !== null) && (
+                  <Marker
+                    key={`${selectedPosition!.position[0]}-${selectedPosition!.position[1]}`}
+                    icon={mapIcons[selectedPosition.type]}
+                    position={selectedPosition.position}
+                  />
+                )}
+              </MapContainer>
+            )}
+            <HStack mt="2">
+              <Input
+                placeholder="Latitude"
+                color="gray.700"
+                value={selectedPosition?.position === null ? "" : selectedPosition?.position[0]}
+                required
+                disabled
+              />
+              <Input
+                placeholder="Longitude"
+                color="gray.700"
+                value={selectedPosition?.position === null ? "" : selectedPosition?.position[1]}
+                required
+                disabled
+              />
+              <IconButton
+                bg="blue.400"
+                aria-label="Pressione para marcar sua posição"
+                size="md"
+                fontSize="lg"
+                variant="solid"
+                icon={<FaMapMarkerAlt color="white" />}
+                onClick={handleGetCurrentPosition}
+              />
+            </HStack>
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel fontSize="sm" htmlFor="location">Localização</FormLabel>
             <Input
-              placeholder='Long'
-              color='black'
-              value={selectedPosition?.position === null ? '' : selectedPosition?.position[1]}
+              id="location"
+              placeholder="Ex: Avenida Ruy Barbosa, nº 000"
+              color="black"
+              value={location}
+              onChange={(event) => setLocation(event.currentTarget.value)}
               required
-              disabled
             />
-            <IconButton
-              bg="blue.400"
-              aria-label="Pressione para marcar sua posição"
-              size="md"
-              fontSize="lg"
-              variant="solid"
-              icon={<FaMapMarkerAlt color="white" />}
-              onClick={handleGetCurrentPosition}
-            />
-          </HStack>
-          <Input
-            placeholder='Localização'
-            color='black'
-            value={location}
-            onChange={(event) => setLocation(event.currentTarget.value)}
-            required
-          />
+          </FormControl>
           
-          <Button
-            type="submit"
-            bg="blue.400"
-            color="white"
-            w="full"
-            _hover={{ filter: "brightness(0.9)" }}
-            _active={{ filter: "brightness(0.8)" }}
-            disabled={selectedPosition.position === null || name === "" || description === "" || location === "" || selectedPosition.type === "blue"}
-          >
-            Confirmar
-          </Button>
+          <HStack w="full" pt="4">
+            <Button
+              type="reset"
+              colorScheme="gray"
+              color="gray.800"
+              w="full"
+              onClick={handleResetForm}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              colorScheme="blue"
+              color="white"
+              w="full"
+              disabled={selectedPosition.position === null || name === "" || description === "" || location === "" || selectedPosition.type === "blue"}
+            >
+              Confirmar
+            </Button>
+          </HStack>
         </VStack>
       </form>
     </Box>

@@ -1,46 +1,22 @@
-import { useNavigate } from "react-router-dom";
-
 import { useMarker } from "../contexts/marker";
-
-// Icons
-import { FaMapMarkedAlt } from "react-icons/fa";
 
 // Styles
 import "leaflet/dist/leaflet.css";  // Map Style
 
 // Components
 import { MarkerInfo } from "../components/MarkerInfo";
-import { Flex, Heading, SimpleGrid , IconButton, Text } from "@chakra-ui/react";
+import { Flex, SimpleGrid, Text } from "@chakra-ui/react";
+import { Header } from "../components/Header";
 
 export const List = () => {
   const { markers } = useMarker();
-  const navigate = useNavigate();
-
-  function handleNavigateToMap() {
-    navigate('/map');
-  }
 
   return (
     <Flex align="center" p="4" direction="column">
-      <Flex maxW="container.md" w="full" direction="row">
-        <Flex direction="column" flex="1">
-          <Heading fontSize="3xl" fontWeight="medium">Marcações</Heading>
-          <Text>{markers.length} Pontos registrados</Text>
-        </Flex>
-        <Flex align="center">
-          <IconButton
-            zIndex="1001"
-            bg="blue.400"
-            colorScheme="blue"
-            aria-label="Pressione para marcar uma região"
-            size="md"
-            fontSize="lg"
-            variant="solid"
-            icon={<FaMapMarkedAlt color="white" />}
-            onClick={handleNavigateToMap}
-          />
-        </Flex>
-      </Flex>
+      <Header
+        title="Marcações"
+        subtitle={`${markers.length} Pontos registrados`}
+      />
       {markers.length === 0 && (
         <Flex
           w="full"

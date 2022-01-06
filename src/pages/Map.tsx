@@ -24,8 +24,11 @@ import { NewMarkerForm } from "../components/NewMarkerForm";
 
 export const Map = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [
+    initialPosition,
+    setInitialPosition
+  ] = useState<[number, number] | null>(null);
 
-  const initialPosition = { lat: -24.1819477, lng: -46.7920167 };
   const {
     markers,
     selectedMarker,
@@ -39,6 +42,20 @@ export const Map = () => {
     isOpen: createMarkerSlideIsOpen,
     onToggle: toggleCreateMarkerSlide,
   } = useDisclosure();
+
+  // Get initial position
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const { latitude, longitude } = position.coords;
+
+        setInitialPosition([latitude, longitude]);
+      },
+      () => {
+        setInitialPosition([-24.1819477, -46.7920167]);
+      }
+    );
+  }, []);
 
   // Info modal
   useEffect(() => {
@@ -109,51 +126,56 @@ export const Map = () => {
           top="14"
           right="2"
           colorScheme="blue"
-          aria-label="Pressione para marcar uma região"
+          aria-label="Pressione para ver a lista de marcações"
           fontSize="lg"
           variant="solid"
           icon={<BsFillGridFill color="white" />}
           onClick={handleNavigateToList}
         />
-        <MapContainer
-          center={initialPosition}
-          zoom={13}
-          zoomControl={false}
-          style={{ height: "100vh" }}
-          whenCreated={whenCreated}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {markers.map(marker => (
-            <Marker
-              key={`${marker.position[0]}-${marker.position[1]}`}
-              icon={mapIcons[marker.type]}
-              position={marker.position}
-              eventHandlers={{
-                click: () => {
-                  setSelectedMarker(marker);
-                  setModalIsOpen(true);
-                }
-              }}
+        {initialPosition !== null && (
+          <MapContainer
+            center={{
+              lat: initialPosition[0],
+              lng: initialPosition[1]
+            }}
+            zoom={13}
+            zoomControl={false}
+            style={{ height: "100vh" }}
+            whenCreated={whenCreated}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-          ))}
-          {(selectedPosition.position !== undefined && selectedPosition.position !== null) && (
-            <Marker
-              key={`${selectedPosition!.position[0]}-${selectedPosition!.position[1]}`}
-              icon={mapIcons[selectedPosition.type]}
-              position={selectedPosition.position}
-              eventHandlers={{ click: () => {
-                setSelectedPosition({
-                  position: null,
-                  type: "blue"
-                });
-                createMarkerSlideIsOpen && toggleCreateMarkerSlide();
-              }}}
-            />
-          )}
-        </MapContainer>
+            {markers.map(marker => (
+              <Marker
+                key={`${marker.position[0]}-${marker.position[1]}`}
+                icon={mapIcons[marker.type]}
+                position={marker.position}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedMarker(marker);
+                    setModalIsOpen(true);
+                  }
+                }}
+              />
+            ))}
+            {(selectedPosition.position !== undefined && selectedPosition.position !== null) && (
+              <Marker
+                key={`${selectedPosition!.position[0]}-${selectedPosition!.position[1]}`}
+                icon={mapIcons[selectedPosition.type]}
+                position={selectedPosition.position}
+                eventHandlers={{ click: () => {
+                  setSelectedPosition({
+                    position: null,
+                    type: "blue"
+                  });
+                  createMarkerSlideIsOpen && toggleCreateMarkerSlide();
+                }}}
+              />
+            )}
+          </MapContainer>
+        )}
       </Box>
     </>
   )

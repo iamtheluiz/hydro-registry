@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import {
   Flex,
   Text,
@@ -8,11 +8,21 @@ import {
 import { FaImage } from "react-icons/fa";
 
 interface CoverInputProps {
+  cover: File | undefined;
   setCover: (cover: File) => void;
 }
 
-export const CoverInput: React.FC<CoverInputProps> = ({ setCover }) => {
+export const CoverInput: React.FC<CoverInputProps> = ({
+  cover, setCover
+}) => {
   const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
+
+  useEffect(() => {
+    if (cover === undefined) {
+      URL.revokeObjectURL(coverPreviewUrl);
+      setCoverPreviewUrl("");
+    }
+  }, [cover]);
 
   function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
@@ -30,7 +40,7 @@ export const CoverInput: React.FC<CoverInputProps> = ({ setCover }) => {
     <label htmlFor="cover" style={{ width: "100%" }}>
       <Flex
         w="full"
-        h="48"
+        h="56"
         cursor="pointer"
         direction="column"
         justify="center"
