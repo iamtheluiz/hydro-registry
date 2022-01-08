@@ -8,15 +8,16 @@ import {
 // Icons
 import { FaTimes } from "react-icons/fa";
 
-interface CreateMarkerSlideProps {
+interface SideSlideProps extends React.RefAttributes<HTMLDivElement> {
   isOpen: boolean;
   onToggle: () => void;
-  direction?: 'right' | 'left'
+  direction?: 'right' | 'left';
+  children: React.ReactNode;
 }
 
-export const SideSlide: React.FC<CreateMarkerSlideProps> = ({
-  isOpen, onToggle, children, direction = 'right'
-}) => {
+export const SideSlide = React.forwardRef<any, SideSlideProps>(({
+  direction = 'right', isOpen, onToggle,...props
+}, ref) => {
   return (
     <Slide
       direction={direction}
@@ -25,13 +26,16 @@ export const SideSlide: React.FC<CreateMarkerSlideProps> = ({
         zIndex: 1000,
         maxWidth: 460,
         maxHeight: '100vh',
-        backgroundColor: "#00000070"
+        backgroundColor: "#00000070",
+        overflowY: "auto"
       }}
+      ref={ref}
+      {...props}
     >
       <Flex
         p="2"
         flexDirection="column"
-        style={{ overflowY: "auto", height: "100%" }}
+        style={{ height: "100%" }}
       >
         <Flex justifyContent="end">
           <IconButton
@@ -44,8 +48,8 @@ export const SideSlide: React.FC<CreateMarkerSlideProps> = ({
             onClick={onToggle}
           />
         </Flex>
-        {children}
+        {props.children}
       </Flex>
     </Slide>
   )
-}
+});

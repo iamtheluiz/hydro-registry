@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={handleNavigateToNewMarker}
             />
           )}
-          {location.pathname === '/new' && (
+          {['new', 'edit'].includes(location.pathname.split('/')[1]) && (
             <IconButton
               zIndex="1001"
               bg="blue.400"

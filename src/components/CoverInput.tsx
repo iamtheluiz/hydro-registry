@@ -19,8 +19,14 @@ export const CoverInput: React.FC<CoverInputProps> = ({
 
   useEffect(() => {
     if (cover === undefined) {
+      // Remove preview
       URL.revokeObjectURL(coverPreviewUrl);
       setCoverPreviewUrl("");
+    } else {
+      // Define preview
+      const coverUrl = URL.createObjectURL(cover);
+  
+      setCoverPreviewUrl(coverUrl);
     }
   }, [cover]);
 
@@ -29,11 +35,9 @@ export const CoverInput: React.FC<CoverInputProps> = ({
 
     if (files === null) return;
 
-    const cover = files[0];
-    const coverUrl = URL.createObjectURL(cover);
-
-    setCoverPreviewUrl(coverUrl);
-    setCover(cover);
+    const selectedCover = files[0];
+  
+    setCover(selectedCover);
   }
 
   return (

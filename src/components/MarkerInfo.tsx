@@ -51,7 +51,9 @@ export const MarkerInfo: React.FC<MarkerInfoProps> =({ marker }) => {
   }
 
   function handleNavigateToEditMarker() {
-    navigate(`/edit/${marker.id}`);
+    navigate(`/edit/${marker.id}`, { state: {
+      marker
+    }});
   }
 
   return (

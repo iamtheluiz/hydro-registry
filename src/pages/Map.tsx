@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box, IconButton, useDisclosure } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { LatLng, Map as MapType } from 'leaflet';
@@ -20,7 +20,7 @@ import { mapIcons } from "../styles/mapIcons";
 // Components
 import { MarkerModal } from "../components/MarkerModal";
 import { SideSlide } from "../components/SideSlide";
-import { NewMarkerForm } from "../components/NewMarkerForm";
+import { MarkerForm } from "../components/MarkerForm";
 
 export const Map = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -36,6 +36,7 @@ export const Map = () => {
     selectedPosition,
     setSelectedPosition
   } = useMarker();
+  const slideRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const {
@@ -105,8 +106,9 @@ export const Map = () => {
         <SideSlide
           isOpen={createMarkerSlideIsOpen}
           onToggle={toggleCreateMarkerSlide}
+          ref={slideRef}
         >
-          <NewMarkerForm />
+          <MarkerForm scrollTopRef={slideRef.current} />
         </SideSlide>
         <IconButton
           zIndex="999"

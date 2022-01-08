@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useState } from "react";
+import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -12,37 +12,92 @@ import {
   FormControl,
   FormLabel
 } from "@chakra-ui/react";
-import { SelectedPosition, useMarker } from "../contexts/marker";
+import { LatLng, Map } from "leaflet";
+import { Marker, MapContainer, TileLayer } from "react-leaflet";
+import {
+  Marker as MarkerType,
+  SelectedPosition,
+  useMarker
+} from "../contexts/marker";
 
 // Firebase
-import { storage } from "../services/firebase";
+import { storage, database } from "../services/firebase";
 import {
   ref as storageRef,
   uploadBytes as uploadBytesStorage
 } from "firebase/storage";
+import {
+  ref as databaseRef,
+  set as databaseSet
+} from "firebase/database";
+
+// Components
+import { CoverInput } from "./CoverInput";
 
 // Icons
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { CoverInput } from "./CoverInput";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
+
+// Styles
 import { mapIcons } from "../styles/mapIcons";
-import { LatLng, Map } from "leaflet";
+import { useNavigate } from "react-router-dom";
+import { getFileFromCover } from "../utils/getFileFromCover";
 
 interface NewMarkerFormProps {
   showTitle?: boolean;
   showMap?: boolean;
+  marker?: MarkerType | null;
+  scrollTopRef?: any;
 }
 
-export const NewMarkerForm: React.FC<NewMarkerFormProps> = ({
-  showTitle = true, showMap = false
+export const MarkerForm: React.FC<NewMarkerFormProps> = ({
+  showTitle = true, showMap = false, marker = null, scrollTopRef = window
 }) => {
-  const initialPosition = [-24.1819477, -46.7920167];
+  const [
+    initialPosition,
+    setInitialPosition
+  ] = useState<[number, number] | null>(null);
+
   const [selectedCover, setSelectedCover] = useState<File>();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
 
   const { selectedPosition, addNewMarker, setSelectedPosition } = useMarker();
+  const navigate = useNavigate();
+
+  // Check if its a edit form
+  useEffect(() => {
+    if (marker) {
+      (async () => {
+        setName(marker.name);
+        setDescription(marker.description);
+        setLocation(marker.location);
+        setSelectedPosition({
+          position: marker.position,
+          type: marker.type
+        });
+        setSelectedCover(await getFileFromCover(marker.cover));
+      })();
+    }
+  }, [marker, setSelectedPosition]);
+
+  // Map Position
+  useEffect(() => {
+    if (marker) { // Editing marker
+      setInitialPosition(marker.position);
+    } else {  // Creating marker
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const { latitude, longitude } = position.coords;
+  
+          setInitialPosition([latitude, longitude]);
+        },
+        () => {
+          setInitialPosition([-24.1819477, -46.7920167]);
+        }
+      );
+    }
+  }, [marker])
 
   function whenCreated(map: Map) {
     map.on('click', (event: { latlng: LatLng}) => {
@@ -80,6 +135,11 @@ export const NewMarkerForm: React.FC<NewMarkerFormProps> = ({
   }
 
   function handleResetForm() {
+    if (marker) { // Edit form
+      navigate('/list');
+      return;
+    }
+
     setSelectedCover(undefined);
     setName("");
     setDescription("");
@@ -89,7 +149,7 @@ export const NewMarkerForm: React.FC<NewMarkerFormProps> = ({
       type: "blue"
     });
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollTopRef.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -103,27 +163,47 @@ export const NewMarkerForm: React.FC<NewMarkerFormProps> = ({
 
     const date = new Date();
 
-    // Upload image to storage
-    const coverUrl = `images/${date.getTime()}_${selectedCover.name}`;
-    const coversCollection = storageRef(storage, coverUrl);
+    if (!marker) {  // Create new
+      // Upload image to storage
+      const coverUrl = `images/${date.getTime()}_${selectedCover.name}`;
+      const coversCollection = storageRef(storage, coverUrl);
 
-    await uploadBytesStorage(coversCollection, selectedCover);
+      await uploadBytesStorage(coversCollection, selectedCover);
 
-    addNewMarker({
-      name,
-      description,
-      cover: coverUrl,
-      location,
-      coverUpdatedAt: date,
-      position,
-      type
-    });
+      addNewMarker({
+        name,
+        description,
+        cover: coverUrl,
+        location,
+        coverUpdatedAt: date,
+        position,
+        type
+      });
 
-    // Reset values
-    setSelectedPosition({
-      position: null,
-      type: "blue"
-    });
+      // Reset values
+      setSelectedPosition({
+        position: null,
+        type: "blue"
+      });
+    } else {
+      let updatedMarker: any = { ...marker };
+
+      // Edit
+      if (marker.cover.split("/").pop() !== selectedCover.name) {
+        console.log("Upload new image");
+      }
+
+      if (marker.name !== name) updatedMarker.name = name;
+      if (marker.description !== description) updatedMarker.description = description;
+      if (marker.type !== selectedPosition.type) updatedMarker.type = selectedPosition.type;
+      if (marker.position !== selectedPosition.position) updatedMarker.position = selectedPosition.position;
+      if (marker.location !== location) updatedMarker.location = location;
+
+      const markerRef = databaseRef(database, `markers/${marker.id}`);
+      await databaseSet(markerRef, updatedMarker);
+
+      navigate('/list');
+    }
   }
 
   return (
@@ -187,7 +267,7 @@ export const NewMarkerForm: React.FC<NewMarkerFormProps> = ({
           </FormControl>
           <FormControl isRequired>
             <FormLabel fontSize="sm">Posição</FormLabel>
-            {showMap && (
+            {(showMap && initialPosition !== null) && (
               <MapContainer
                 center={{
                   lat: initialPosition[0],

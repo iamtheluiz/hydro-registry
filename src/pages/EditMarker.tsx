@@ -1,10 +1,15 @@
+import React from "react";
 import { Flex, Box } from "@chakra-ui/react";
+import { useLocation } from "react-router-dom";
+import { Marker } from "../contexts/marker";
 
 // Components
 import { Header } from "../components/Header";
-import { MarkerForm } from "../components/MarkerForm"
+import { MarkerForm } from "../components/MarkerForm";
 
-export const NewMarker = () => {
+export const EditMarker: React.FC = () => {
+  const { state } = useLocation() as { state: { marker: Marker } };
+
   return (
     <Flex align="center" p="4" direction="column">
       <Header
@@ -15,6 +20,7 @@ export const NewMarker = () => {
         <MarkerForm
           showTitle={false}
           showMap
+          marker={state.marker}
         />
       </Box>
     </Flex>
