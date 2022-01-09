@@ -24,7 +24,8 @@ import {
 import { storage, database } from "../services/firebase";
 import {
   ref as storageRef,
-  uploadBytes as uploadBytesStorage
+  uploadBytes as uploadBytesStorage,
+  deleteObject as deleteStorageObject
 } from "firebase/storage";
 import {
   ref as databaseRef,
@@ -134,12 +135,7 @@ export const MarkerForm: React.FC<NewMarkerFormProps> = ({
     });
   }
 
-  function handleResetForm() {
-    if (marker) { // Edit form
-      navigate('/list');
-      return;
-    }
-
+  function resetFormValues() {
     setSelectedCover(undefined);
     setName("");
     setDescription("");
@@ -148,7 +144,15 @@ export const MarkerForm: React.FC<NewMarkerFormProps> = ({
       position: null,
       type: "blue"
     });
+  }
 
+  function handleResetForm() {
+    if (marker) { // Edit form
+      navigate('/list');
+      return;
+    }
+
+    resetFormValues();
     scrollTopRef.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -163,11 +167,12 @@ export const MarkerForm: React.FC<NewMarkerFormProps> = ({
 
     const date = new Date();
 
+    // Set cover url
+    const coverUrl = `images/${date.getTime()}_${selectedCover.name}`;
+    const coversCollection = storageRef(storage, coverUrl);
+
     if (!marker) {  // Create new
       // Upload image to storage
-      const coverUrl = `images/${date.getTime()}_${selectedCover.name}`;
-      const coversCollection = storageRef(storage, coverUrl);
-
       await uploadBytesStorage(coversCollection, selectedCover);
 
       addNewMarker({
@@ -180,24 +185,25 @@ export const MarkerForm: React.FC<NewMarkerFormProps> = ({
         type
       });
 
-      // Reset values
-      setSelectedPosition({
-        position: null,
-        type: "blue"
-      });
+      resetFormValues();
     } else {
-      let updatedMarker: any = { ...marker };
+      let updatedMarker = {
+        ...marker,
+        name,
+        description,
+        type,
+        position,
+        location
+      };
 
-      // Edit
+      // Edit cover
       if (marker.cover.split("/").pop() !== selectedCover.name) {
-        console.log("Upload new image");
-      }
+        updatedMarker.coverUpdatedAt = date;
+        updatedMarker.cover = coverUrl;
 
-      if (marker.name !== name) updatedMarker.name = name;
-      if (marker.description !== description) updatedMarker.description = description;
-      if (marker.type !== selectedPosition.type) updatedMarker.type = selectedPosition.type;
-      if (marker.position !== selectedPosition.position) updatedMarker.position = selectedPosition.position;
-      if (marker.location !== location) updatedMarker.location = location;
+        await uploadBytesStorage(coversCollection, selectedCover);
+        await deleteStorageObject(storageRef(storage, marker.cover));
+      }
 
       const markerRef = databaseRef(database, `markers/${marker.id}`);
       await databaseSet(markerRef, updatedMarker);
