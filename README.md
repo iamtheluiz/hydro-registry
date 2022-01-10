@@ -23,7 +23,7 @@ O Hydro Register surgiu de uma conversa com meu pai sobre a necessidade de regis
 * Esse tipo de registro deve ser mantidos por empresas que possuem a concessão do sistema de águas de cada região, sendo problemática a divulgação pública da localidade de cada registro ou hidrante
 * Assim sendo, o presente projeto propõe apenas demonstrar como um sistema de registros poderia ser desenvolvido, mas não visa se tornar um domínio público com dados sensíveis sobre os sistemas hídricos das regiões.
 
-## 💻 Tecnologias
+## 🛠 Tecnologias
 
 O projeto foi desenvolvido com as seguintes tecnologias:
 - [TypeScript](https://www.typescriptlang.org/)
@@ -49,7 +49,7 @@ npm install
 yarn install
 ```
 
-## 👨🏽‍💻 Executando
+## 💻 Executando
 
 Para executar esse projeto em um ambiente local utilize:
 
