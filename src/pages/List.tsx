@@ -1,18 +1,16 @@
 import { useMarker } from "../contexts/marker";
-
-// Styles
-import "leaflet/dist/leaflet.css";  // Map Style
+import { Flex, SimpleGrid, Text } from "@chakra-ui/react";
 
 // Components
 import { MarkerInfo } from "../components/MarkerInfo";
-import { Flex, SimpleGrid, Text } from "@chakra-ui/react";
 import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 
 export const List = () => {
   const { markers } = useMarker();
 
   return (
-    <Flex align="center" p="4" direction="column">
+    <Flex align="center" p="4" direction="column" minH="100vh">
       <Header
         title="Marcações"
         subtitle={`${markers.length} Pontos registrados`}
@@ -47,7 +45,8 @@ export const List = () => {
             marker={marker}
           />
         ))}
-      </SimpleGrid >
+      </SimpleGrid>
+      <Footer />
     </Flex>
   )
 }

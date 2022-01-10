@@ -6,6 +6,7 @@ import { Marker } from "../contexts/marker";
 // Components
 import { Header } from "../components/Header";
 import { MarkerForm } from "../components/MarkerForm";
+import { Footer } from "../components/Footer";
 
 export const EditMarker: React.FC = () => {
   const { state } = useLocation() as { state: { marker: Marker } };
@@ -23,6 +24,7 @@ export const EditMarker: React.FC = () => {
           marker={state.marker}
         />
       </Box>
+      <Footer />
     </Flex>
   )
 }
