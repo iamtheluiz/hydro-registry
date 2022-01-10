@@ -9,6 +9,7 @@ import { Map } from "./pages/Map";
 import { List } from "./pages/List";
 import { NewMarker } from "./pages/NewMarker";
 import { EditMarker } from "./pages/EditMarker";
+import { About } from "./pages/About";
 
 export const ApplicationRoutes = () => (
   <BrowserRouter>
@@ -18,6 +19,7 @@ export const ApplicationRoutes = () => (
       <Route path="/list" element={<List />} />
       <Route path="/new" element={<NewMarker />} />
       <Route path="/edit/:id" element={<EditMarker />} />
+      <Route path="/about" element={<About />} />
     </Routes>
   </BrowserRouter>
 );
