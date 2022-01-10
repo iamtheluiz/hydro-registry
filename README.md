@@ -1,59 +1,74 @@
-This project was bootstrapped with
-[Create React App](https://github.com/facebook/create-react-app).
+<p align="center">
+	<img width="64px" src="./src/assets/valve.png" alt="NLW Together 06" /> <br>
+  Hydro Register
+</p>
 
-## Available Scripts
+<p align="center">
+  <img alt="Typescript" src="https://img.shields.io/badge/-Typescript-44475a?logo=typescript&color=3182ce&logoColor=white" />
+  <img alt="React" src="https://img.shields.io/badge/-React-44475a?logo=react&color=3182ce&logoColor=white" />
+  <img alt="Firebase" src="https://img.shields.io/badge/-Firebase-44475a?logo=firebase&color=3182ce&logoColor=white" />
+</p>
 
-In the project directory, you can run:
+<img src=".github/home.png" alt="Captura de Tela da Página Inicial" />
 
-### `yarn start`
+## 🗺 O projeto
 
-Runs the app in the development mode.<br /> Open
-[http://localhost:3000](http://localhost:3000) to view it in the browser.
+O Hydro Register surgiu de uma conversa com meu pai sobre a necessidade de registrar a localização de registros e hidrantes nas cidades, facilitando a localização e o acompanhamento deles.
 
-The page will reload if you make edits.<br /> You will also see any lint errors
-in the console.
+* **Luiz Gustavo** - *Desenvolvedor* - [iamtheluiz](https://github.com/iamtheluiz)
 
-### `yarn test`
+### ⚠ Observações
 
-Launches the test runner in the interactive watch mode.<br /> See the section
-about
-[running tests](https://facebook.github.io/create-react-app/docs/running-tests)
-for more information.
+* É importante reforçar que a ideia atual do projeto é demonstrar uma possível solução, com uma plataforma desenvolvida pela curiosidade e vontade de propor a resolução de um problema
+* Esse tipo de registro deve ser mantidos por empresas que possuem a concessão do sistema de águas de cada região, sendo problemática a divulgação pública da localidade de cada registro ou hidrante
+* Assim sendo, o presente projeto propõe apenas demonstrar como um sistema de registros poderia ser desenvolvido, mas não visa se tornar um domínio público com dados sensíveis sobre os sistemas hídricos das regiões.
 
-### `yarn build`
+## 💻 Tecnologias
 
-Builds the app for production to the `build` folder.<br /> It correctly bundles
-React in production mode and optimizes the build for the best performance.
+O projeto foi desenvolvido com as seguintes tecnologias:
+- [TypeScript](https://www.typescriptlang.org/)
+- [React](https://reactjs.org)
+- [Firebase](https://firebase.google.com/)
 
-The build is minified and the filenames include the hashes.<br /> Your app is
-ready to be deployed!
+## 🏃 Iniciando
 
-See the section about
-[deployment](https://facebook.github.io/create-react-app/docs/deployment) for
-more information.
+Primeiro, clone esse repositório e acesse a pasta criada:
 
-### `yarn eject`
+```bash
+# Clonando repositório
+git clone https://github.com/iamtheluiz/hydro-registry.git
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+cd hydro-registry/
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can
-`eject` at any time. This command will remove the single build dependency from
-your project.
+Dentro da pasta, instale todas as dependências do projeto:
 
-Instead, it will copy all the configuration files and the transitive
-dependencies (webpack, Babel, ESLint, etc) right into your project so you have
-full control over them. All of the commands except `eject` will still work, but
-they will point to the copied scripts so you can tweak them. At this point
-you’re on your own.
+```bash
+npm install
+# ou
+yarn install
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for
-small and middle deployments, and you shouldn’t feel obligated to use this
-feature. However we understand that this tool wouldn’t be useful if you couldn’t
-customize it when you are ready for it.
+## 👨🏽‍💻 Executando
 
-## Learn More
+Para executar esse projeto em um ambiente local utilize:
 
-You can learn more in the
-[Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm run start
+# ou
+yarn start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Então abra [http://localhost:3000](http://localhost:3000) para visualizar o site no seu navegador.
+
+É importante destacar que esse projeto utiliza o [Firebase](https://firebase.google.com/), sendo necessário criar um projeto e utilizar suas credênciais para disponibilizar um Realtime Database. O exemplo de arquivo com as variáveis de ambiente pode ser encontrado em [.env.example](.env.example).
+
+## ⚙️ Build
+
+Para gerar uma versão para disponibilização do projeto, execute:
+
+```bash
+yarn build
+```
+
+Aguarde até que as rotinas terminem e você terá uma pasta "/build", na raiz do projeto, com todos os arquivos estáticos gerados.
