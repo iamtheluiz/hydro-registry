@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { Box, IconButton, useDisclosure } from "@chakra-ui/react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { Box, IconButton, useDisclosure, Flex, Stack, Checkbox, Text } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { LatLng, Map as MapType } from 'leaflet';
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, TileLayer, useMapEvent } from "react-leaflet";
 
 import {
   useMarker,
@@ -11,7 +11,7 @@ import {
 } from "../contexts/marker";
 
 // Icons
-import { FaPlus } from "react-icons/fa";
+import { FaLayerGroup, FaPlus } from "react-icons/fa";
 import { BsFillGridFill } from "react-icons/bs";
 
 // Styles
@@ -21,6 +21,17 @@ import { mapIcons } from "../styles/mapIcons";
 import { MarkerModal } from "../components/MarkerModal";
 import { SideSlide } from "../components/SideSlide";
 import { MarkerForm } from "../components/MarkerForm";
+import { FaX } from "react-icons/fa6";
+import { MapFilter } from "../types/map";
+import { HTMLCheckboxElement } from "../types/inputs";
+
+function SetMarkerOnClick({ placeMarker }: { placeMarker: (latlng: LatLng) => void }) {
+  useMapEvent('click', (e: { latlng: LatLng }) => {
+    placeMarker(e.latlng)
+  })
+
+  return null
+}
 
 export const Map = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -28,6 +39,21 @@ export const Map = () => {
     initialPosition,
     setInitialPosition
   ] = useState<[number, number] | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [mapLayersFilter, setMapLayersFilter] = useState<MapFilter[]>([
+    {
+      id: "hidrante de coluna",
+      label: "Hidrante de Coluna",
+      icon: null,
+      checked: true
+    },
+    {
+      id: "registro",
+      label: "Registro",
+      icon: null,
+      checked: true
+    },
+  ])
 
   const {
     markers,
@@ -47,7 +73,7 @@ export const Map = () => {
   // Get initial position
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
-      function(position) {
+      function (position) {
         const { latitude, longitude } = position.coords;
 
         setInitialPosition([latitude, longitude]);
@@ -73,22 +99,37 @@ export const Map = () => {
     }
   }, [selectedPosition]);
 
-  function whenCreated(map: MapType) {
-    map.on('click', (event: { latlng: LatLng}) => {
-      const { lat, lng } = event.latlng;
+  function placeMarker(latlng: LatLng) {
+    const { lat, lng } = latlng;
 
-      setSelectedPosition((prevState: SelectedPosition) => {
-        const newState: SelectedPosition = {
-          ...prevState,
-          position: [lat, lng]
-        }
+    setSelectedPosition((prevState: SelectedPosition) => {
+      const newState: SelectedPosition = {
+        ...prevState,
+        position: [lat, lng]
+      }
 
-        return newState;
-      })
-      toggleCreateMarkerSlide();
+      return newState;
     })
+
+    if (!createMarkerSlideIsOpen) {
+      toggleCreateMarkerSlide()
+    }
   }
-  
+
+  function handleMapLayerFilterSelection(e: ChangeEvent<HTMLCheckboxElement>, filter: MapFilter) {
+    const serializedMapLayerFilters = mapLayersFilter.map(filterItem => {
+      if (filterItem.id === filter.id) {
+        return {
+          ...filterItem,
+          checked: e.target.checked
+        }
+      }
+      return filterItem
+    })
+
+    setMapLayersFilter(serializedMapLayerFilters)
+  }
+
   function handleNavigateToList() {
     navigate('/list');
   }
@@ -110,30 +151,77 @@ export const Map = () => {
         >
           <MarkerForm scrollTopRef={slideRef.current} />
         </SideSlide>
-        <IconButton
-          zIndex="999"
-          position="absolute"
-          top="2"
-          right="2"
-          colorScheme="blue"
-          aria-label="Pressione para marcar uma região"
-          fontSize="lg"
-          variant="solid"
-          icon={<FaPlus color="white" />}
-          onClick={toggleCreateMarkerSlide}
-        />
-        <IconButton
-          zIndex="999"
-          position="absolute"
-          top="14"
-          right="2"
-          colorScheme="blue"
-          aria-label="Pressione para ver a lista de marcações"
-          fontSize="lg"
-          variant="solid"
-          icon={<BsFillGridFill color="white" />}
-          onClick={handleNavigateToList}
-        />
+        <Flex direction="column" alignItems="end" gap="2" zIndex="999" position="absolute" right="2" top="2">
+          <IconButton
+            colorScheme="blue"
+            aria-label="Pressione para marcar uma região"
+            fontSize="lg"
+            variant="solid"
+            w="10"
+            icon={<FaPlus color="white" />}
+            onClick={toggleCreateMarkerSlide}
+          />
+          <IconButton
+            colorScheme="blue"
+            aria-label="Pressione para ver a lista de marcações"
+            fontSize="lg"
+            variant="solid"
+            w="10"
+            icon={<BsFillGridFill color="white" />}
+            onClick={handleNavigateToList}
+          />
+          <Box
+            transition="all 0.2s ease-in-out"
+            height={isOpen ? 'full' : '10'}
+            width={isOpen ? 'full' : '10'}
+            minH="10"
+            minW="10"
+            borderRadius="md"
+            padding={isOpen ? "4" : "0"}
+            overflow={"hidden"}
+            backgroundColor="#fff"
+            cursor={!isOpen ? "pointer" : "default"}
+            position="relative"
+          >
+            <IconButton
+              display={isOpen ? "none" : "flex"}
+              colorScheme="gray"
+              backgroundColor="white"
+              aria-label="Pressione para ver a lista de filtros"
+              fontSize="lg"
+              variant="solid"
+              w="10"
+              icon={<FaLayerGroup color="b9b9b9" />}
+              onClick={() => setIsOpen(true)}
+            />
+            <FaX
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                cursor: "pointer",
+                display: isOpen ? "flex" : "none"
+              }}
+              color="b9b9b9"
+              onClick={() => setIsOpen(false)}
+            />
+            <Flex direction="column" justify="start" alignItems="start" display={isOpen ? "flex" : "none"}>
+              <Text as="b">Filtros</Text>
+              <Stack spacing={2} paddingTop={1} direction="column">
+                {mapLayersFilter.map(filter => (
+                  <Checkbox
+                    key={filter.id}
+                    checked={filter.checked}
+                    defaultChecked={filter.checked}
+                    onChange={event => handleMapLayerFilterSelection(event, filter)}
+                  >
+                    {filter.label}
+                  </Checkbox>
+                ))}
+              </Stack>
+            </Flex>
+          </Box>
+        </Flex>
         {initialPosition !== null && (
           <MapContainer
             center={{
@@ -143,15 +231,12 @@ export const Map = () => {
             zoom={13}
             zoomControl={false}
             style={{ height: "100vh" }}
-            whenCreated={whenCreated}
           >
+            <SetMarkerOnClick placeMarker={placeMarker} />
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              // url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              // url="https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg"
-              url="https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {markers.map(marker => (
+            {markers.filter(marker => mapLayersFilter.filter(f => f.checked).map(f => f.id).includes(marker.type)).map(marker => (
               <Marker
                 key={`${marker.position[0]}-${marker.position[1]}`}
                 icon={mapIcons[marker.type]}
@@ -169,13 +254,15 @@ export const Map = () => {
                 key={`${selectedPosition!.position[0]}-${selectedPosition!.position[1]}`}
                 icon={mapIcons[selectedPosition.type]}
                 position={selectedPosition.position}
-                eventHandlers={{ click: () => {
-                  setSelectedPosition({
-                    position: null,
-                    type: "blue"
-                  });
-                  createMarkerSlideIsOpen && toggleCreateMarkerSlide();
-                }}}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedPosition({
+                      position: null,
+                      type: "blue"
+                    });
+                    createMarkerSlideIsOpen && toggleCreateMarkerSlide();
+                  }
+                }}
               />
             )}
           </MapContainer>
