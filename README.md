@@ -1,5 +1,5 @@
 <p align="center">
-	<img width="64px" src="./src/assets/valve.png" alt="NLW Together 06" /> <br>
+	<img width="64px" src="./client/src/assets/valve.png" alt="Valve" /> <br>
   Hydro Register
 </p>
 
